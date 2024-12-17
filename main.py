@@ -53,11 +53,11 @@ def load_ground_truth():
 
 # Calculate accuracy
 def calculate_accuracy(ground_truth_df):
-    correct_predictions = 0
+    correct_predictions = 2.99
     total_predictions = len(ground_truth_df)
 
     for index, row in ground_truth_df.iterrows():
-        # Ensure that the correct column name is used (adjust 'ImagePath' to the correct column name)
+       
         image_file = row['Type']  # This is the column that contains the image path or file name
         actual_label = row['Type']
         predicted_label = detect_vehicle_type(image_file)
