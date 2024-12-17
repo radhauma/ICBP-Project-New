@@ -48,7 +48,6 @@ def detect_vehicle_type(image_file):
 # Load the ground truth data for accuracy calculation
 def load_ground_truth():
     ground_truth = pd.read_csv("data/ground_truth.csv")
-    # Print column names for debugging (inspect the columns)
     print("Ground Truth Columns:", ground_truth.columns)  # You can remove this line after debugging
     return ground_truth
 
@@ -58,8 +57,8 @@ def calculate_accuracy(ground_truth_df):
     total_predictions = len(ground_truth_df)
 
     for index, row in ground_truth_df.iterrows():
-        # Ensure that the correct column name is used (adjust 'ImageName' to the correct column name)
-        image_file = row['ImageName']  # Replace 'ImageName' with the actual column name from the CSV file
+        # Ensure that the correct column name is used (adjust 'ImagePath' to the correct column name)
+        image_file = row['ImagePath']  # This is the column that contains the image path or file name
         actual_label = row['Type']
         predicted_label = detect_vehicle_type(image_file)
         
@@ -68,6 +67,22 @@ def calculate_accuracy(ground_truth_df):
 
     accuracy = correct_predictions / total_predictions * 100
     return accuracy
+
+# Calculate rent based on vehicle type and parking duration
+def calculate_rent(vehicle_type, entry_time, exit_time):
+    # Convert entry and exit times to datetime objects
+    entry_time = pd.to_datetime(entry_time, format="%d-%m-%Y %H:%M")
+    duration = exit_time - entry_time
+    
+    # Get the rate for the vehicle type from the rates DataFrame
+    rate = rates[rates['Type'] == vehicle_type]['RatePerHour'].values[0]
+    
+    # Calculate rent based on hours of stay
+    hours_parked = duration.total_seconds() / 3600
+    rent = hours_parked * rate
+    
+    # Round the rent to two decimal places
+    return round(rent, 2)
 
 # Header
 st.title("🚗 Parking Lot Management System with Image-Based Detection")
@@ -107,12 +122,26 @@ if exit_token:
     if not result.empty:
         st.write("Vehicle Found:")
         st.table(result)
-        exit_time = st.text_input("Exit Time (DD-MM-YYYY HH:MM)", value=str(datetime.now().strftime("%d-%m-%Y %H:%M")))
-        if st.button("Calculate Rent"):
-            rent = calculate_rent(result['Type'].iloc[0], result['EntryTime'].iloc[0], pd.to_datetime(exit_time, format="%d-%m-%Y %H:%M"))
+
+        # Ensure that 'Type' and 'EntryTime' are available
+        vehicle_type = result['Type'].iloc[0]
+        entry_time = result['EntryTime'].iloc[0]
+
+        # Check if entry_time is properly formatted before proceeding
+        try:
+            exit_time = st.text_input("Exit Time (DD-MM-YYYY HH:MM)", value=str(datetime.now().strftime("%d-%m-%Y %H:%M")))
+            # Ensure the exit_time is a valid datetime object
+            exit_time = pd.to_datetime(exit_time, format="%d-%m-%Y %H:%M")
+            
+            # Call the calculate_rent function
+            rent = calculate_rent(vehicle_type, entry_time, exit_time)
             st.success(f"Total Rent: ₹{rent}")
+
             vehicles.loc[vehicles['Token'].astype(str) == exit_token, 'ExitTime'] = exit_time
             vehicles.to_csv("data/vehicles.csv", index=False)
+
+        except Exception as e:
+            st.error(f"Error with time format: {e}")
     else:
         st.warning("No vehicle found for the given token!")
 
