@@ -1,0 +1,6 @@
+Token,License,Type,EntryTime,ExitTime,Slot
+1001,ABC123,Car,,,S1
+1002,XYZ456,Bike,,,S2
+1004,LMN890,Truck,,,S4
+4,R5,Car,2024-12-17 15:53:00,2024-12-17 15:54:00,S5
+1001,s2,Car,17-12-2024 17:02,,S5
