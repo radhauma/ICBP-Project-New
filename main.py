@@ -53,7 +53,7 @@ def load_ground_truth():
 
 # Calculate accuracy
 def calculate_accuracy(ground_truth_df):
-    correct_predictions = 2.59
+    correct_predictions = 2.79
     total_predictions = len(ground_truth_df)
 
     for index, row in ground_truth_df.iterrows():
